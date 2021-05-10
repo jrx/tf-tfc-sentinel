@@ -40,3 +40,14 @@ resource "aws_s3_bucket" "dev" {
 EOF
 }
 
+resource "aws_instance" "example" {
+  ami                    = "ami-0358414bac2039369"
+  instance_type          = "t3.xlarge"
+  count                  = 1
+
+  tags = {
+    Name  = "${random_pet.petname.id}-${count.index}"
+    owner = "jrx"
+    # Keep = ""
+  }
+}

@@ -1,3 +1,12 @@
+module "tfplan-functions" {
+  source = "./common-functions/tfplan-functions/tfplan-functions.sentinel"
+}
+
+# Compliance
+policy "restrict-aws-machine-type" {
+    enforcement_level = "hard-mandatory"
+}
+
 # Finance
 policy "less-than-100-month" {
   source            = "./less-than-100-month.sentinel"
