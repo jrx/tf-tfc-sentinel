@@ -1,0 +1,1415 @@
+import "strings"
+
+providers = {
+	"aws": {
+		"alias": "",
+		"config": {
+			"region": {
+				"references": [
+					"var.aws_region",
+				],
+			},
+		},
+		"module_address":      "",
+		"name":                "aws",
+		"provider_config_key": "aws",
+		"version_constraint":  "",
+	},
+	"null": {
+		"alias":               "",
+		"config":              {},
+		"module_address":      "",
+		"name":                "null",
+		"provider_config_key": "null",
+		"version_constraint":  "",
+	},
+}
+
+resources = {
+	"aws_iam_instance_profile.tfe_objects_profile": {
+		"address": "aws_iam_instance_profile.tfe_objects_profile",
+		"config": {
+			"name": {
+				"constant_value": "tfe_objects_profile",
+			},
+			"role": {
+				"references": [
+					"aws_iam_role.tfe_objects_role",
+				],
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "",
+		"name":                "tfe_objects_profile",
+		"provider_config_key": "aws",
+		"provisioners":        [],
+		"type":                "aws_iam_instance_profile",
+	},
+	"aws_iam_role.tfe_objects_role": {
+		"address": "aws_iam_role.tfe_objects_role",
+		"config": {
+			"assume_role_policy": {
+				"constant_value": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"Service\": \"ec2.amazonaws.com\"\n      },\n      \"Effect\": \"Allow\",\n      \"Sid\": \"\"\n    }\n  ]\n}\n",
+			},
+			"name": {
+				"constant_value": "tfe_objects_role",
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "",
+		"name":                "tfe_objects_role",
+		"provider_config_key": "aws",
+		"provisioners":        [],
+		"type":                "aws_iam_role",
+	},
+	"aws_iam_role_policy.tfe_objects_policy": {
+		"address": "aws_iam_role_policy.tfe_objects_policy",
+		"config": {
+			"name": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"policy": {
+				"references": [
+					"module.s3.bucket_id",
+					"module.s3.bucket_id",
+				],
+			},
+			"role": {
+				"references": [
+					"aws_iam_role.tfe_objects_role",
+				],
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "",
+		"name":                "tfe_objects_policy",
+		"provider_config_key": "aws",
+		"provisioners":        [],
+		"type":                "aws_iam_role_policy",
+	},
+	"aws_instance.tfe": {
+		"address": "aws_instance.tfe",
+		"config": {
+			"ami": {
+				"references": [
+					"var.amis",
+					"var.aws_region",
+				],
+			},
+			"associate_public_ip_address": {
+				"constant_value": true,
+			},
+			"availability_zone": {
+				"references": [
+					"module.net.azs",
+					"count.index",
+					"module.net.azs",
+				],
+			},
+			"iam_instance_profile": {
+				"references": [
+					"aws_iam_instance_profile.tfe_objects_profile",
+				],
+			},
+			"instance_type": {
+				"references": [
+					"var.tfe_instance_type",
+				],
+			},
+			"key_name": {
+				"references": [
+					"var.key_name",
+				],
+			},
+			"root_block_device": [
+				{
+					"volume_size": {
+						"constant_value": 50,
+					},
+				},
+			],
+			"subnet_id": {
+				"references": [
+					"module.net.public_subnets",
+					"count.index",
+					"module.net.azs",
+				],
+			},
+			"tags": {
+				"references": [
+					"var.cluster_name",
+					"count.index",
+					"var.owner",
+				],
+			},
+			"user_data": {
+				"references": [
+					"data.template_file.user_data",
+					"count.index",
+				],
+			},
+			"vpc_security_group_ids": {
+				"references": [
+					"module.net.vpc_security_group_default",
+				],
+			},
+		},
+		"count": {
+			"references": [
+				"var.num_tfe",
+			],
+		},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "",
+		"name":                "tfe",
+		"provider_config_key": "aws",
+		"provisioners":        [],
+		"type":                "aws_instance",
+	},
+	"data.template_file.user_data": {
+		"address": "data.template_file.user_data",
+		"config": {
+			"template": {
+				"references": [
+					"path.module",
+					"path.module",
+					"path.module",
+				],
+			},
+			"vars": {
+				"references": [
+					"var.tfe_admin_password",
+					"local.tfe_hostname",
+					"var.tfe_release_sequence",
+					"var.tfe_enc_password",
+					"module.rds.database_name",
+					"module.rds.endpoint",
+					"module.rds.database_password",
+					"var.tfe_database_username",
+					"module.redis.redis_host",
+					"module.redis.redis_port",
+					"module.redis.redis_pass",
+					"module.s3.bucket_id",
+					"module.s3.region",
+				],
+			},
+		},
+		"count": {
+			"references": [
+				"var.num_tfe",
+			],
+		},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "data",
+		"module_address":      "",
+		"name":                "user_data",
+		"provider_config_key": "template",
+		"provisioners":        [],
+		"type":                "template_file",
+	},
+	"module.net.aws_security_group.db_access": {
+		"address": "module.net.aws_security_group.db_access",
+		"config": {
+			"tags": {
+				"references": [
+					"var.cluster_name",
+					"var.owner",
+				],
+			},
+			"vpc_id": {
+				"references": [
+					"data.terraform_remote_state.vpc",
+				],
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.net",
+		"name":                "db_access",
+		"provider_config_key": "module.net:aws",
+		"provisioners":        [],
+		"type":                "aws_security_group",
+	},
+	"module.net.aws_security_group.default": {
+		"address": "module.net.aws_security_group.default",
+		"config": {
+			"name": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"tags": {
+				"references": [
+					"var.cluster_name",
+					"var.owner",
+				],
+			},
+			"vpc_id": {
+				"references": [
+					"data.terraform_remote_state.vpc",
+				],
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.net",
+		"name":                "default",
+		"provider_config_key": "module.net:aws",
+		"provisioners":        [],
+		"type":                "aws_security_group",
+	},
+	"module.net.aws_security_group.redis_access": {
+		"address": "module.net.aws_security_group.redis_access",
+		"config": {
+			"tags": {
+				"references": [
+					"var.cluster_name",
+					"var.owner",
+				],
+			},
+			"vpc_id": {
+				"references": [
+					"data.terraform_remote_state.vpc",
+				],
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.net",
+		"name":                "redis_access",
+		"provider_config_key": "module.net:aws",
+		"provisioners":        [],
+		"type":                "aws_security_group",
+	},
+	"module.net.data.terraform_remote_state.vpc": {
+		"address": "module.net.data.terraform_remote_state.vpc",
+		"config": {
+			"backend": {
+				"constant_value": "remote",
+			},
+			"config": {
+				"constant_value": {
+					"hostname":     "app.terraform.io",
+					"organization": "jrx",
+					"workspaces": {
+						"name": "net-dev",
+					},
+				},
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "data",
+		"module_address":      "module.net",
+		"name":                "vpc",
+		"provider_config_key": "module.net:terraform",
+		"provisioners":        [],
+		"type":                "terraform_remote_state",
+	},
+	"module.rds.aws_db_subnet_group.tfe": {
+		"address": "module.rds.aws_db_subnet_group.tfe",
+		"config": {
+			"name_prefix": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"subnet_ids": {
+				"references": [
+					"var.subnet_ids",
+				],
+			},
+			"tags": {
+				"constant_value": {
+					"Name": "tfe subnet group",
+				},
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.rds",
+		"name":                "tfe",
+		"provider_config_key": "module.rds:aws",
+		"provisioners":        [],
+		"type":                "aws_db_subnet_group",
+	},
+	"module.rds.aws_rds_cluster.tfe": {
+		"address": "module.rds.aws_rds_cluster.tfe",
+		"config": {
+			"backup_retention_period": {
+				"constant_value": 5,
+			},
+			"cluster_identifier_prefix": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"database_name": {
+				"references": [
+					"var.tfe_database_name",
+				],
+			},
+			"db_subnet_group_name": {
+				"references": [
+					"aws_db_subnet_group.tfe",
+				],
+			},
+			"engine": {
+				"constant_value": "aurora-postgresql",
+			},
+			"final_snapshot_identifier": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"master_password": {
+				"references": [
+					"random_string.database_password",
+				],
+			},
+			"master_username": {
+				"references": [
+					"var.tfe_database_username",
+				],
+			},
+			"preferred_backup_window": {
+				"constant_value": "07:00-09:00",
+			},
+			"skip_final_snapshot": {
+				"constant_value": true,
+			},
+			"vpc_security_group_ids": {
+				"references": [
+					"var.vpc_security_group_ids",
+				],
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.rds",
+		"name":                "tfe",
+		"provider_config_key": "module.rds:aws",
+		"provisioners":        [],
+		"type":                "aws_rds_cluster",
+	},
+	"module.rds.aws_rds_cluster_instance.tfe1": {
+		"address": "module.rds.aws_rds_cluster_instance.tfe1",
+		"config": {
+			"apply_immediately": {
+				"constant_value": true,
+			},
+			"cluster_identifier": {
+				"references": [
+					"aws_rds_cluster.tfe",
+				],
+			},
+			"db_subnet_group_name": {
+				"references": [
+					"aws_db_subnet_group.tfe",
+				],
+			},
+			"engine": {
+				"constant_value": "aurora-postgresql",
+			},
+			"identifier_prefix": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"instance_class": {
+				"constant_value": "db.r5.large",
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.rds",
+		"name":                "tfe1",
+		"provider_config_key": "module.rds:aws",
+		"provisioners":        [],
+		"type":                "aws_rds_cluster_instance",
+	},
+	"module.rds.random_string.database_password": {
+		"address": "module.rds.random_string.database_password",
+		"config": {
+			"length": {
+				"constant_value": 40,
+			},
+			"special": {
+				"constant_value": false,
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.rds",
+		"name":                "database_password",
+		"provider_config_key": "module.rds:random",
+		"provisioners":        [],
+		"type":                "random_string",
+	},
+	"module.redis.aws_elasticache_replication_group.tfe": {
+		"address": "module.redis.aws_elasticache_replication_group.tfe",
+		"config": {
+			"apply_immediately": {
+				"constant_value": true,
+			},
+			"at_rest_encryption_enabled": {
+				"constant_value": true,
+			},
+			"auth_token": {
+				"references": [
+					"random_string.redis_password",
+				],
+			},
+			"automatic_failover_enabled": {
+				"constant_value": true,
+			},
+			"availability_zones": {
+				"references": [
+					"var.availability_zones",
+				],
+			},
+			"engine": {
+				"constant_value": "redis",
+			},
+			"engine_version": {
+				"constant_value": "5.0.6",
+			},
+			"node_type": {
+				"constant_value": "cache.m5.large",
+			},
+			"number_cache_clusters": {
+				"references": [
+					"var.availability_zones",
+				],
+			},
+			"parameter_group_name": {
+				"constant_value": "default.redis5.0",
+			},
+			"port": {
+				"constant_value": 7480,
+			},
+			"replication_group_description": {
+				"constant_value": "External Redis for TFE.",
+			},
+			"replication_group_id": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"security_group_ids": {
+				"references": [
+					"var.vpc_security_group_ids",
+				],
+			},
+			"subnet_group_name": {
+				"references": [
+					"aws_elasticache_subnet_group.tfe",
+				],
+			},
+			"transit_encryption_enabled": {
+				"constant_value": true,
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.redis",
+		"name":                "tfe",
+		"provider_config_key": "module.redis:aws",
+		"provisioners":        [],
+		"type":                "aws_elasticache_replication_group",
+	},
+	"module.redis.aws_elasticache_subnet_group.tfe": {
+		"address": "module.redis.aws_elasticache_subnet_group.tfe",
+		"config": {
+			"name": {
+				"constant_value": "tfe-test-elasticache",
+			},
+			"subnet_ids": {
+				"references": [
+					"var.subnet_ids",
+				],
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.redis",
+		"name":                "tfe",
+		"provider_config_key": "module.redis:aws",
+		"provisioners":        [],
+		"type":                "aws_elasticache_subnet_group",
+	},
+	"module.redis.random_string.redis_password": {
+		"address": "module.redis.random_string.redis_password",
+		"config": {
+			"length": {
+				"constant_value": 40,
+			},
+			"special": {
+				"constant_value": false,
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.redis",
+		"name":                "redis_password",
+		"provider_config_key": "module.redis:random",
+		"provisioners":        [],
+		"type":                "random_string",
+	},
+	"module.route53.aws_route53_record.tfe_lb": {
+		"address": "module.route53.aws_route53_record.tfe_lb",
+		"config": {
+			"name": {
+				"references": [
+					"var.hostname",
+				],
+			},
+			"records": {
+				"references": [
+					"var.ips",
+				],
+			},
+			"ttl": {
+				"constant_value": "10",
+			},
+			"type": {
+				"constant_value": "A",
+			},
+			"zone_id": {
+				"references": [
+					"data.aws_route53_zone.zone",
+					"count.index",
+				],
+			},
+		},
+		"count": {
+			"references": [
+				"var.update_route53",
+			],
+		},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.route53",
+		"name":                "tfe_lb",
+		"provider_config_key": "module.route53:aws",
+		"provisioners":        [],
+		"type":                "aws_route53_record",
+	},
+	"module.route53.data.aws_acm_certificate.lb": {
+		"address": "module.route53.data.aws_acm_certificate.lb",
+		"config": {
+			"domain": {
+				"references": [
+					"var.cert_domain",
+					"var.cert_domain",
+					"var.domain",
+				],
+			},
+			"most_recent": {
+				"constant_value": true,
+			},
+			"statuses": {
+				"constant_value": [
+					"ISSUED",
+				],
+			},
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "data",
+		"module_address":      "module.route53",
+		"name":                "lb",
+		"provider_config_key": "module.route53:aws",
+		"provisioners":        [],
+		"type":                "aws_acm_certificate",
+	},
+	"module.route53.data.aws_route53_zone.zone": {
+		"address": "module.route53.data.aws_route53_zone.zone",
+		"config": {
+			"name": {
+				"references": [
+					"var.domain",
+				],
+			},
+			"private_zone": {
+				"references": [
+					"var.private_zone",
+				],
+			},
+		},
+		"count": {
+			"references": [
+				"var.update_route53",
+			],
+		},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "data",
+		"module_address":      "module.route53",
+		"name":                "zone",
+		"provider_config_key": "module.route53:aws",
+		"provisioners":        [],
+		"type":                "aws_route53_zone",
+	},
+	"module.s3.aws_s3_bucket.tfe_objects": {
+		"address": "module.s3.aws_s3_bucket.tfe_objects",
+		"config": {
+			"bucket": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"versioning": [
+				{
+					"enabled": {
+						"constant_value": true,
+					},
+				},
+			],
+		},
+		"count":               {},
+		"depends_on":          [],
+		"for_each":            {},
+		"mode":                "managed",
+		"module_address":      "module.s3",
+		"name":                "tfe_objects",
+		"provider_config_key": "module.s3:aws",
+		"provisioners":        [],
+		"type":                "aws_s3_bucket",
+	},
+}
+
+provisioners = {}
+
+variables = {
+	"amis": {
+		"default": {
+			"eu-north-1": "ami-02dae9b8dca8dafb7",
+		},
+		"description":    "",
+		"module_address": "",
+		"name":           "amis",
+	},
+	"aws_azs": {
+		"default": [
+			"eu-north-1a",
+			"eu-north-1b",
+			"eu-north-1c",
+		],
+		"description":    "List of the availability zones to use.",
+		"module_address": "",
+		"name":           "aws_azs",
+	},
+	"aws_region": {
+		"default":        "eu-north-1",
+		"description":    "",
+		"module_address": "",
+		"name":           "aws_region",
+	},
+	"cert_domain": {
+		"default":        "",
+		"description":    "Domain to search for ACM certificate with (default is *.domain)",
+		"module_address": "",
+		"name":           "cert_domain",
+	},
+	"cluster_name": {
+		"default":        "tfe-example",
+		"description":    "Name of the tfe cluster.",
+		"module_address": "",
+		"name":           "cluster_name",
+	},
+	"domain": {
+		"default":        "server.company.com",
+		"description":    "Root domain in route53",
+		"module_address": "",
+		"name":           "domain",
+	},
+	"instance_username": {
+		"default":        "centos",
+		"description":    "",
+		"module_address": "",
+		"name":           "instance_username",
+	},
+	"key_name": {
+		"default":        null,
+		"description":    "Specify the AWS ssh key to use.",
+		"module_address": "",
+		"name":           "key_name",
+	},
+	"module.net:aws_azs": {
+		"default":        null,
+		"description":    "List of the availability zones to use.",
+		"module_address": "module.net",
+		"name":           "aws_azs",
+	},
+	"module.net:cluster_name": {
+		"default":        null,
+		"description":    "Name of the tfe cluster.",
+		"module_address": "module.net",
+		"name":           "cluster_name",
+	},
+	"module.net:owner": {
+		"default":        null,
+		"description":    "Owner tag on all resources.",
+		"module_address": "module.net",
+		"name":           "owner",
+	},
+	"module.rds:cluster_name": {
+		"default":        null,
+		"description":    "Name of the tfe cluster.",
+		"module_address": "module.rds",
+		"name":           "cluster_name",
+	},
+	"module.rds:subnet_ids": {
+		"default":        null,
+		"description":    "",
+		"module_address": "module.rds",
+		"name":           "subnet_ids",
+	},
+	"module.rds:tfe_database_name": {
+		"default":        null,
+		"description":    "name of the initial database",
+		"module_address": "module.rds",
+		"name":           "tfe_database_name",
+	},
+	"module.rds:tfe_database_username": {
+		"default":        null,
+		"description":    "username of the initial user",
+		"module_address": "module.rds",
+		"name":           "tfe_database_username",
+	},
+	"module.rds:vpc_security_group_ids": {
+		"default":        null,
+		"description":    "",
+		"module_address": "module.rds",
+		"name":           "vpc_security_group_ids",
+	},
+	"module.redis:availability_zones": {
+		"default":        null,
+		"description":    "",
+		"module_address": "module.redis",
+		"name":           "availability_zones",
+	},
+	"module.redis:cluster_name": {
+		"default":        null,
+		"description":    "Name of the tfe cluster.",
+		"module_address": "module.redis",
+		"name":           "cluster_name",
+	},
+	"module.redis:subnet_ids": {
+		"default":        null,
+		"description":    "",
+		"module_address": "module.redis",
+		"name":           "subnet_ids",
+	},
+	"module.redis:vpc_security_group_ids": {
+		"default":        null,
+		"description":    "",
+		"module_address": "module.redis",
+		"name":           "vpc_security_group_ids",
+	},
+	"module.route53:cert_domain": {
+		"default":        null,
+		"description":    "Domain to search for ACM certificate with (default is *.domain)",
+		"module_address": "module.route53",
+		"name":           "cert_domain",
+	},
+	"module.route53:domain": {
+		"default":        null,
+		"description":    "Root domain in route53",
+		"module_address": "module.route53",
+		"name":           "domain",
+	},
+	"module.route53:hostname": {
+		"default":        null,
+		"description":    "",
+		"module_address": "module.route53",
+		"name":           "hostname",
+	},
+	"module.route53:ips": {
+		"default":        null,
+		"description":    "",
+		"module_address": "module.route53",
+		"name":           "ips",
+	},
+	"module.route53:private_zone": {
+		"default":        null,
+		"description":    "Set to true if your route53 zone is private.",
+		"module_address": "module.route53",
+		"name":           "private_zone",
+	},
+	"module.route53:update_route53": {
+		"default":        null,
+		"description":    "Indicate if route53 should be updated automatically.",
+		"module_address": "module.route53",
+		"name":           "update_route53",
+	},
+	"module.s3:cluster_name": {
+		"default":        null,
+		"description":    "Name of the tfe cluster.",
+		"module_address": "module.s3",
+		"name":           "cluster_name",
+	},
+	"num_tfe": {
+		"default":        2,
+		"description":    "Specify the amount of TFE servers. For redundancy you should have 2.",
+		"module_address": "",
+		"name":           "num_tfe",
+	},
+	"owner": {
+		"default":        "myuser",
+		"description":    "Owner tag on all resources.",
+		"module_address": "",
+		"name":           "owner",
+	},
+	"private_zone": {
+		"default":        "false",
+		"description":    "Set to true if your route53 zone is private.",
+		"module_address": "",
+		"name":           "private_zone",
+	},
+	"tfe_admin_password": {
+		"default":        "admin",
+		"description":    "Password to be used for Replicated admin console.",
+		"module_address": "",
+		"name":           "tfe_admin_password",
+	},
+	"tfe_database_name": {
+		"default":        "tfe",
+		"description":    "name of the initial database",
+		"module_address": "",
+		"name":           "tfe_database_name",
+	},
+	"tfe_database_username": {
+		"default":        "tfe",
+		"description":    "username of the initial user",
+		"module_address": "",
+		"name":           "tfe_database_username",
+	},
+	"tfe_enc_password": {
+		"default":        "admin",
+		"description":    "Password to be used for data encryption.",
+		"module_address": "",
+		"name":           "tfe_enc_password",
+	},
+	"tfe_instance_type": {
+		"default":        "m5.xlarge",
+		"description":    "TFE server instance type.",
+		"module_address": "",
+		"name":           "tfe_instance_type",
+	},
+	"tfe_release_sequence": {
+		"default":        0,
+		"description":    "Numerical identifier to pin a TFE release, e.g. 419.",
+		"module_address": "",
+		"name":           "tfe_release_sequence",
+	},
+	"update_route53": {
+		"default":        "true",
+		"description":    "Indicate if route53 should be updated automatically.",
+		"module_address": "",
+		"name":           "update_route53",
+	},
+}
+
+outputs = {
+	"database_endpoint": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "database_endpoint",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"module.rds.endpoint",
+			],
+		},
+	},
+	"database_name": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "database_name",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"module.rds.database_name",
+			],
+		},
+	},
+	"database_password": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "database_password",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"module.rds.database_password",
+			],
+		},
+	},
+	"database_username": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "database_username",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"var.tfe_database_username",
+			],
+		},
+	},
+	"module.net:azs": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.net",
+		"name":           "azs",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"data.terraform_remote_state.vpc",
+			],
+		},
+	},
+	"module.net:public_subnets": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.net",
+		"name":           "public_subnets",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"data.terraform_remote_state.vpc",
+			],
+		},
+	},
+	"module.net:vpc_id": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.net",
+		"name":           "vpc_id",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"data.terraform_remote_state.vpc",
+			],
+		},
+	},
+	"module.net:vpc_security_group_db": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.net",
+		"name":           "vpc_security_group_db",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"aws_security_group.db_access",
+			],
+		},
+	},
+	"module.net:vpc_security_group_default": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.net",
+		"name":           "vpc_security_group_default",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"aws_security_group.default",
+			],
+		},
+	},
+	"module.net:vpc_security_group_redis": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.net",
+		"name":           "vpc_security_group_redis",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"aws_security_group.redis_access",
+			],
+		},
+	},
+	"module.rds:database_name": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.rds",
+		"name":           "database_name",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"aws_rds_cluster.tfe",
+			],
+		},
+	},
+	"module.rds:database_password": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.rds",
+		"name":           "database_password",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"random_string.database_password",
+			],
+		},
+	},
+	"module.rds:endpoint": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.rds",
+		"name":           "endpoint",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"aws_rds_cluster.tfe",
+			],
+		},
+	},
+	"module.redis:redis_host": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.redis",
+		"name":           "redis_host",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"aws_elasticache_replication_group.tfe",
+			],
+		},
+	},
+	"module.redis:redis_pass": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.redis",
+		"name":           "redis_pass",
+		"sensitive":      true,
+		"value": {
+			"references": [
+				"aws_elasticache_replication_group.tfe",
+			],
+		},
+	},
+	"module.redis:redis_port": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.redis",
+		"name":           "redis_port",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"aws_elasticache_replication_group.tfe",
+			],
+		},
+	},
+	"module.s3:bucket_id": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.s3",
+		"name":           "bucket_id",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"aws_s3_bucket.tfe_objects",
+			],
+		},
+	},
+	"module.s3:region": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "module.s3",
+		"name":           "region",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"aws_s3_bucket.tfe_objects",
+			],
+		},
+	},
+	"redis_host": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "redis_host",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"module.redis.redis_host",
+			],
+		},
+	},
+	"redis_pass": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "redis_pass",
+		"sensitive":      true,
+		"value": {
+			"references": [
+				"module.redis.redis_pass",
+			],
+		},
+	},
+	"redis_port": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "redis_port",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"module.redis.redis_port",
+			],
+		},
+	},
+	"s3_bucket": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "s3_bucket",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"module.s3.bucket_id",
+			],
+		},
+	},
+	"s3_region": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "s3_region",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"module.s3.region",
+			],
+		},
+	},
+	"tfe_hostname": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "tfe_hostname",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"local.tfe_hostname",
+			],
+		},
+	},
+	"tfe_public_ip": {
+		"depends_on":     [],
+		"description":    "",
+		"module_address": "",
+		"name":           "tfe_public_ip",
+		"sensitive":      false,
+		"value": {
+			"references": [
+				"aws_instance.tfe",
+			],
+		},
+	},
+}
+
+module_calls = {
+	"net": {
+		"config": {
+			"aws_azs": {
+				"references": [
+					"var.aws_azs",
+				],
+			},
+			"cluster_name": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"owner": {
+				"references": [
+					"var.owner",
+				],
+			},
+		},
+		"count":              {},
+		"depends_on":         [],
+		"for_each":           {},
+		"module_address":     "",
+		"name":               "net",
+		"source":             "app.terraform.io/jrx/net/aws",
+		"version_constraint": "0.0.1",
+	},
+	"rds": {
+		"config": {
+			"cluster_name": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"subnet_ids": {
+				"references": [
+					"module.net.public_subnets",
+				],
+			},
+			"tfe_database_name": {
+				"references": [
+					"var.tfe_database_name",
+				],
+			},
+			"tfe_database_username": {
+				"references": [
+					"var.tfe_database_username",
+				],
+			},
+			"vpc_security_group_ids": {
+				"references": [
+					"module.net.vpc_security_group_db",
+				],
+			},
+		},
+		"count":              {},
+		"depends_on":         [],
+		"for_each":           {},
+		"module_address":     "",
+		"name":               "rds",
+		"source":             "app.terraform.io/jrx/rds/aws",
+		"version_constraint": "0.0.1",
+	},
+	"redis": {
+		"config": {
+			"availability_zones": {
+				"references": [
+					"var.aws_azs",
+				],
+			},
+			"cluster_name": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+			"subnet_ids": {
+				"references": [
+					"module.net.public_subnets",
+				],
+			},
+			"vpc_security_group_ids": {
+				"references": [
+					"module.net.vpc_security_group_redis",
+				],
+			},
+		},
+		"count":              {},
+		"depends_on":         [],
+		"for_each":           {},
+		"module_address":     "",
+		"name":               "redis",
+		"source":             "app.terraform.io/jrx/redis/aws",
+		"version_constraint": "0.0.1",
+	},
+	"route53": {
+		"config": {
+			"cert_domain": {
+				"references": [
+					"var.cert_domain",
+				],
+			},
+			"domain": {
+				"references": [
+					"var.domain",
+				],
+			},
+			"hostname": {
+				"references": [
+					"local.tfe_hostname",
+				],
+			},
+			"ips": {
+				"references": [
+					"aws_instance.tfe",
+				],
+			},
+			"private_zone": {
+				"references": [
+					"var.private_zone",
+				],
+			},
+			"update_route53": {
+				"references": [
+					"var.update_route53",
+				],
+			},
+		},
+		"count":              {},
+		"depends_on":         [],
+		"for_each":           {},
+		"module_address":     "",
+		"name":               "route53",
+		"source":             "app.terraform.io/jrx/route53/aws",
+		"version_constraint": "0.0.1",
+	},
+	"s3": {
+		"config": {
+			"cluster_name": {
+				"references": [
+					"var.cluster_name",
+				],
+			},
+		},
+		"count":              {},
+		"depends_on":         [],
+		"for_each":           {},
+		"module_address":     "",
+		"name":               "s3",
+		"source":             "app.terraform.io/jrx/s3/aws",
+		"version_constraint": "0.0.1",
+	},
+}
+
+strip_index = func(addr) {
+	s = strings.split(addr, ".")
+	for s as i, v {
+		s[i] = strings.split(v, "[")[0]
+	}
+
+	return strings.join(s, ".")
+}

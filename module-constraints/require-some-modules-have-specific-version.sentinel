@@ -1,0 +1,23 @@
+# This policy uses the tfconfig/v2 import to require modules to have
+# version constraint, this is a good practise.
+import "tfconfig-functions" as config
+
+# Allowed module versions
+allowed_versions = ["0.0.1","0.0.3"]
+
+# Get all modules
+allModuleCalls = config.find_all_module_calls()
+
+# Get all module calls that have version_constraint as undefined or empty.
+# think it as : (mc.version_constrain else "") is ""
+# app.terraform.io/jrx/rds/aws should be 0.0.1 not 0.0.2
+violatingModuleCalls = config.filter_attribute_not_in_list(allModuleCalls,
+"version_constraint", allowed_versions, true)
+
+# Count violations
+violations = length(violatingModuleCalls["messages"])
+
+# Main rule
+main = rule {
+  violations is 0
+}
