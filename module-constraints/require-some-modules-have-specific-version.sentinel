@@ -3,21 +3,40 @@
 import "tfconfig-functions" as config
 
 # Allowed module versions
-allowed_versions = ["0.0.1","0.0.3"]
+checked_modules = {
+    "app.terraform.io/jrx/rds/aws": "0.0.1",
+    "app.terraform.io/jrx/s3/aws":  "0.0.1",
+}
 
 # Get all modules
 allModuleCalls = config.find_all_module_calls()
 
-# Get all module calls that have version_constraint as undefined or empty.
-# think it as : (mc.version_constrain else "") is ""
-# app.terraform.io/jrx/rds/aws should be 0.0.1 not 0.0.2
-violatingModuleCalls = config.filter_attribute_not_in_list(allModuleCalls,
-"version_constraint", allowed_versions, true)
+# Iterate over the allowed versions map
+violations = 0
 
-# Count violations
-violations = length(violatingModuleCalls["messages"])
+for checked_modules as source, version {
+
+    print(source)
+    print(version)
+
+    checkedModuleCalls = config.filter_attribute_in_list(
+        allModuleCalls,
+        "source",
+        source,
+        false)
+
+    
+    violatingModuleCalls = config.filter_attribute_not_in_list(
+        checkedModuleCalls["items"],
+        "version_constraint",
+        version,
+        true)
+
+    violations = violations + length(violatingModuleCalls["messages"])
+    print(violations)
+}
 
 # Main rule
 main = rule {
-  violations is 0
+    violations is 0
 }
