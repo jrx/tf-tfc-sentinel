@@ -4,7 +4,8 @@ module "tfplan-functions" {
 
 # Compliance
 policy "restrict-aws-machine-type" {
-    enforcement_level = "hard-mandatory"
+  source            = "./restrict-aws-machine-type.sentinel"
+  enforcement_level = "hard-mandatory"
 }
 
 # Finance

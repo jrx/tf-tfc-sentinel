@@ -13,11 +13,12 @@ resource "random_pet" "petname" {
 
 resource "aws_s3_bucket" "dev" {
   bucket = "sentinel-ws-${random_pet.petname.id}"
-  acl    = "public-read"
+  acl    = "private"
   force_destroy = true
 
   tags = {
     environment = "dev"
+    owner = "jan"
   }
 
   policy = <<EOF
@@ -42,7 +43,7 @@ EOF
 
 resource "aws_instance" "example" {
   ami                    = "ami-0358414bac2039369"
-  instance_type          = "t3.xlarge"
+  instance_type          = "t3.micro"
   count                  = 1
 
   tags = {
